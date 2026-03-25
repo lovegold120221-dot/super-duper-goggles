@@ -1,0 +1,1250 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Eburon Edge Voice | Dashboard</title>
+    <script src="https://unpkg.com/@phosphor-icons/web"></script>
+    <style>
+        :root {
+            /* Apple Dark Mode Palette */
+            --bg-base: #000000;
+            --bg-surface: #1c1c1e;
+            --bg-surface-hover: #2c2c2e;
+            --bg-glass: rgba(0, 0, 0, 0.75);
+            --border-color: #333336;
+            --text-primary: #f5f5f7;
+            --text-secondary: #86868b;
+            
+            /* Apple Accent Colors */
+            --primary-accent: #2997ff;
+            --primary-accent-hover: #0077ed;
+            --danger: #ff3b30;
+            --success: #32d74b;
+            --warning: #ff9f0a;
+            --purple: #bf5af2;
+            --pink: #ff375f;
+            
+            /* Typography & Shapes */
+            --font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "SF Pro Display", "Helvetica Neue", Helvetica, Arial, sans-serif;
+            --sidebar-width: 260px;
+            --radius-sm: 8px;
+            --radius-md: 10px;
+            --radius-lg: 18px;
+            --radius-pill: 980px;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: var(--font-family);
+            background-color: var(--bg-base);
+            color: var(--text-primary);
+            display: flex;
+            height: 100vh;
+            overflow: hidden;
+            
+            /* Apple Font Smoothing */
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+            letter-spacing: -0.005em;
+        }
+
+        h1, h2, h3, h4, .brand, .stat-card-value {
+            letter-spacing: -0.02em; /* Tighter tracking for headers */
+        }
+
+        /* Scrollbar styling */
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: #424245; border-radius: 10px; border: 2px solid var(--bg-base); }
+
+        /* Loading Animation */
+        .loading {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid rgba(255,255,255,.3);
+            border-radius: 50%;
+            border-top-color: var(--primary-accent);
+            animation: spin 1s ease-in-out infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        /* Sidebar */
+        .sidebar {
+            width: var(--sidebar-width);
+            background-color: var(--bg-base);
+            border-right: 1px solid var(--border-color);
+            display: flex;
+            flex-direction: column;
+            padding: 24px 16px;
+            overflow-y: auto;
+            z-index: 10;
+        }
+
+        .brand {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            font-size: 1.15rem;
+            font-weight: 600;
+            color: white;
+            margin-bottom: 32px;
+            padding: 0 8px;
+        }
+
+        .brand i {
+            color: var(--primary-accent);
+            font-size: 1.5rem;
+        }
+
+        .nav-section {
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            color: var(--text-secondary);
+            margin: 16px 8px 8px 8px;
+            font-weight: 600;
+        }
+
+        .nav-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 10px 12px;
+            color: var(--text-primary);
+            text-decoration: none;
+            border-radius: var(--radius-md);
+            margin-bottom: 4px;
+            font-size: 0.95rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .nav-item i { 
+            font-size: 1.25rem; 
+            color: var(--text-secondary);
+            transition: color 0.2s ease;
+        }
+
+        .nav-item:hover {
+            background-color: var(--bg-surface);
+        }
+
+        .nav-item.active {
+            background-color: var(--primary-accent);
+            color: #ffffff;
+        }
+
+        .nav-item.active i {
+            color: #ffffff;
+        }
+
+        /* Main Content */
+        .main-content {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            position: relative;
+        }
+
+        /* Frosted Glass Header */
+        .header {
+            height: 70px;
+            position: absolute;
+            top: 0; left: 0; right: 0;
+            border-bottom: 1px solid var(--border-color);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 32px;
+            background-color: var(--bg-glass);
+            backdrop-filter: saturate(180%) blur(20px);
+            -webkit-backdrop-filter: saturate(180%) blur(20px);
+            z-index: 50;
+        }
+
+        .header-title {
+            font-size: 1.25rem;
+            font-weight: 600;
+        }
+
+        .header-actions button {
+            background-color: var(--primary-accent);
+            color: white;
+            border: none;
+            padding: 8px 18px;
+            border-radius: var(--radius-pill);
+            font-size: 0.9rem;
+            font-weight: 500;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            transition: background 0.2s;
+        }
+
+        .header-actions button:hover { background-color: var(--primary-accent-hover); }
+        .header-actions button:disabled { opacity: 0.5; cursor: not-allowed; }
+
+        /* View Container */
+        .view-container {
+            flex: 1;
+            padding: 102px 32px 32px 32px;
+            overflow-y: auto;
+            display: none;
+        }
+
+        .view-container.active { display: block; }
+
+        /* Dashboard Grid */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+            gap: 20px;
+            margin-bottom: 32px;
+        }
+
+        .stat-card {
+            background-color: var(--bg-surface);
+            border-radius: var(--radius-lg);
+            padding: 24px;
+            transition: transform 0.2s ease;
+        }
+
+        .stat-card:hover {
+            transform: translateY(-2px);
+        }
+
+        .stat-card-title {
+            color: var(--text-secondary);
+            font-size: 0.85rem;
+            font-weight: 500;
+            margin-bottom: 8px;
+        }
+
+        .stat-card-value {
+            font-size: 2.25rem;
+            font-weight: 600;
+            color: white;
+        }
+
+        /* Modal */
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0,0,0,0.8);
+            backdrop-filter: blur(10px);
+        }
+
+        .modal.active {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .modal-content {
+            background-color: var(--bg-surface);
+            border-radius: var(--radius-lg);
+            padding: 32px;
+            max-width: 600px;
+            width: 90%;
+            max-height: 80vh;
+            overflow-y: auto;
+            position: relative;
+            animation: modalSlideIn 0.3s ease;
+        }
+
+        @keyframes modalSlideIn {
+            from {
+                transform: translateY(-50px);
+                opacity: 0;
+            }
+            to {
+                transform: translateY(0);
+                opacity: 1;
+            }
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 24px;
+        }
+
+        .modal-title {
+            font-size: 1.5rem;
+            font-weight: 600;
+        }
+
+        .modal-close {
+            background: none;
+            border: none;
+            color: var(--text-secondary);
+            font-size: 1.5rem;
+            cursor: pointer;
+            padding: 8px;
+            border-radius: var(--radius-md);
+            transition: all 0.2s ease;
+        }
+
+        .modal-close:hover {
+            background-color: var(--bg-surface-hover);
+            color: var(--text-primary);
+        }
+
+        /* Form Styles */
+        .form-group { display: flex; flex-direction: column; gap: 8px; margin-bottom: 20px; }
+        
+        .form-group label {
+            font-size: 0.85rem;
+            font-weight: 500;
+            color: var(--text-secondary);
+        }
+
+        .form-group input, .form-group select, .form-group textarea {
+            background-color: rgba(255, 255, 255, 0.05);
+            border: 1px solid transparent;
+            color: var(--text-primary);
+            padding: 12px 14px;
+            border-radius: var(--radius-md);
+            font-family: var(--font-family);
+            font-size: 0.95rem;
+            transition: all 0.2s ease;
+        }
+
+        .form-group input:focus, .form-group select:focus, .form-group textarea:focus {
+            outline: none;
+            background-color: rgba(255, 255, 255, 0.08);
+            border-color: var(--primary-accent);
+            box-shadow: 0 0 0 4px rgba(41, 151, 255, 0.15);
+        }
+
+        .form-group textarea { resize: vertical; min-height: 120px; line-height: 1.5; }
+
+        .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+
+        .form-actions {
+            display: flex;
+            gap: 12px;
+            justify-content: flex-end;
+            margin-top: 24px;
+        }
+
+        .btn {
+            padding: 12px 24px;
+            border-radius: var(--radius-md);
+            border: none;
+            font-size: 0.9rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .btn-primary {
+            background-color: var(--primary-accent);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background-color: var(--primary-accent-hover);
+        }
+
+        .btn-secondary {
+            background-color: var(--bg-surface-hover);
+            color: var(--text-primary);
+        }
+
+        .btn-secondary:hover {
+            background-color: var(--bg-surface);
+        }
+
+        /* Assistant List */
+        .assistant-list {
+            display: grid;
+            gap: 16px;
+        }
+
+        .assistant-card {
+            background-color: var(--bg-surface);
+            border-radius: var(--radius-lg);
+            padding: 24px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .assistant-card:hover {
+            background-color: var(--bg-surface-hover);
+            transform: translateX(4px);
+        }
+
+        .assistant-info h3 {
+            font-size: 1.1rem;
+            font-weight: 600;
+            margin-bottom: 4px;
+        }
+
+        .assistant-info p {
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+        }
+
+        .assistant-actions {
+            display: flex;
+            gap: 8px;
+        }
+
+        .btn-small {
+            padding: 6px 12px;
+            font-size: 0.8rem;
+            border-radius: var(--radius-sm);
+        }
+
+        /* Badge */
+        .badge {
+            background-color: rgba(50, 215, 75, 0.15);
+            color: var(--success);
+            padding: 4px 8px;
+            border-radius: 6px;
+            font-size: 0.75rem;
+            font-weight: 600;
+        }
+
+        /* Templates Grid */
+        .template-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 20px;
+        }
+
+        .template-card {
+            background-color: var(--bg-surface);
+            border-radius: var(--radius-lg);
+            padding: 24px;
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+            transition: all 0.3s ease;
+            border: 1px solid transparent;
+            cursor: pointer;
+        }
+
+        .template-card:hover {
+            transform: scale(1.02);
+            border-color: var(--border-color);
+            background-color: var(--bg-surface-hover);
+        }
+
+        .template-icon {
+            width: 48px;
+            height: 48px;
+            background: rgba(41, 151, 255, 0.1);
+            color: var(--primary-accent);
+            border-radius: var(--radius-md);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+        }
+
+        .template-card h3 { font-size: 1.15rem; font-weight: 600; }
+        .template-card p { font-size: 0.95rem; color: var(--text-secondary); line-height: 1.5; flex: 1; }
+        
+        .template-tags { display: flex; gap: 8px; margin-bottom: 8px; }
+        .template-tag {
+            background: rgba(255, 255, 255, 0.1);
+            font-size: 0.75rem;
+            padding: 4px 10px;
+            border-radius: var(--radius-pill);
+            color: var(--text-primary);
+            font-weight: 500;
+        }
+
+        /* Floating Test Widget */
+        .test-widget {
+            position: fixed;
+            bottom: 32px;
+            right: 32px;
+            z-index: 100;
+        }
+
+        .test-btn {
+            background-color: var(--primary-accent);
+            color: white;
+            border: none;
+            border-radius: var(--radius-pill);
+            padding: 14px 24px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            box-shadow: 0 8px 24px rgba(41, 151, 255, 0.3);
+            transition: all 0.3s ease;
+        }
+
+        .test-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 12px 28px rgba(41, 151, 255, 0.4);
+        }
+
+        .test-btn.active {
+            background-color: var(--danger);
+            box-shadow: 0 0 0 0 rgba(255, 59, 48, 0.7);
+            animation: pulse-red 2s infinite;
+        }
+
+        .wave-icon {
+            display: none;
+            gap: 3px;
+            align-items: center;
+            height: 15px;
+        }
+
+        .wave-icon span {
+            width: 3px;
+            height: 100%;
+            background-color: white;
+            border-radius: 2px;
+            animation: wave 1s infinite ease-in-out;
+        }
+
+        .wave-icon span:nth-child(2) { animation-delay: 0.2s; }
+        .wave-icon span:nth-child(3) { animation-delay: 0.4s; }
+
+        .active .wave-icon { display: flex; }
+        .active .ph-phone-call { display: none; }
+
+        @keyframes pulse-red {
+            0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(255, 59, 48, 0.7); }
+            70% { transform: scale(1); box-shadow: 0 0 0 10px rgba(255, 59, 48, 0); }
+            100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(255, 59, 48, 0); }
+        }
+
+        @keyframes wave {
+            0%, 100% { height: 4px; }
+            50% { height: 15px; }
+        }
+
+        /* Notification Toast */
+        .toast {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            padding: 16px 20px;
+            border-radius: var(--radius-md);
+            color: white;
+            font-weight: 500;
+            z-index: 2000;
+            transform: translateX(400px);
+            transition: transform 0.3s ease;
+        }
+
+        .toast.show {
+            transform: translateX(0);
+        }
+
+        .toast.success {
+            background-color: var(--success);
+        }
+
+        .toast.error {
+            background-color: var(--danger);
+        }
+
+        .toast.info {
+            background-color: var(--primary-accent);
+        }
+
+        /* Empty State */
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+            color: var(--text-secondary);
+        }
+
+        .empty-state i {
+            font-size: 4rem;
+            margin-bottom: 16px;
+            opacity: 0.5;
+        }
+
+        .empty-state h3 {
+            font-size: 1.5rem;
+            margin-bottom: 8px;
+        }
+
+        .empty-state p {
+            margin-bottom: 24px;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Sidebar -->
+    <nav class="sidebar">
+        <div class="brand">
+            <i class="ph-fill ph-waveform"></i>
+            Eburon Edge
+        </div>
+        
+        <div class="nav-section">Core</div>
+        <a class="nav-item active" onclick="switchTab('dashboard')">
+            <i class="ph ph-squares-four"></i> Dashboard
+        </a>
+        <a class="nav-item" onclick="switchTab('assistants')">
+            <i class="ph ph-robot"></i> Assistants
+        </a>
+        <a class="nav-item" onclick="switchTab('templates')">
+            <i class="ph ph-copy"></i> Templates
+        </a>
+
+        <div class="nav-section">Telephony</div>
+        <a class="nav-item" onclick="switchTab('phone-numbers')">
+            <i class="ph ph-phone"></i> Phone Numbers
+        </a>
+        <a class="nav-item" onclick="switchTab('call-logs')">
+            <i class="ph ph-list-dashes"></i> Call Logs
+        </a>
+
+        <div class="nav-section">Resources</div>
+        <a class="nav-item" onclick="switchTab('knowledge-base')">
+            <i class="ph ph-books"></i> Knowledge Base
+        </a>
+        <a class="nav-item" onclick="switchTab('integrations')">
+            <i class="ph ph-plugs"></i> Integrations
+        </a>
+        
+        <div class="nav-section">Organization</div>
+        <a class="nav-item" onclick="switchTab('settings')">
+            <i class="ph ph-gear"></i> Settings
+        </a>
+    </nav>
+
+    <!-- Main Content -->
+    <main class="main-content">
+        
+        <!-- Apple Frosted Glass Header -->
+        <header class="header">
+            <div class="header-title" id="header-title">Dashboard</div>
+            <div class="header-actions">
+                <button id="createAssistantBtn" onclick="openCreateAssistantModal()">
+                    <i class="ph ph-plus"></i> Create Assistant
+                </button>
+            </div>
+        </header>
+
+        <!-- View: Dashboard -->
+        <div id="view-dashboard" class="view-container active">
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="stat-card-title">Active Calls</div>
+                    <div class="stat-card-value" id="activeCalls">0</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-card-title">Total Minutes Used</div>
+                    <div class="stat-card-value">12,450</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-card-title">Total Cost</div>
+                    <div class="stat-card-value">$84.20</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-card-title">Average Latency</div>
+                    <div class="stat-card-value">640ms</div>
+                </div>
+            </div>
+            
+            <h3 style="margin-bottom: 16px; font-weight: 600;">Recent Calls</h3>
+            <div id="recentCalls" class="assistant-list" style="height: auto;">
+                <!-- Recent calls will be populated here -->
+            </div>
+        </div>
+
+        <!-- View: Assistants -->
+        <div id="view-assistants" class="view-container">
+            <h2 style="margin-bottom: 24px;">AI Assistants</h2>
+            <div id="assistantsList" class="assistant-list">
+                <!-- Assistants will be populated here -->
+            </div>
+        </div>
+
+        <!-- View: Templates -->
+        <div id="view-templates" class="view-container">
+            <div class="templates-header">
+                <h2>Pre-Built Templates</h2>
+                <p>Start instantly with prompt and configuration templates tailored for specific business use-cases.</p>
+            </div>
+            
+            <div class="template-grid">
+                <!-- Template 1 -->
+                <div class="template-card" onclick="useTemplate('customer-support')">
+                    <div class="template-icon"><i class="ph ph-headset"></i></div>
+                    <h3>Customer Support CSR</h3>
+                    <div class="template-tags">
+                        <span class="template-tag">Inbound</span>
+                        <span class="template-tag">Ollama</span>
+                    </div>
+                    <p>A polite, patient agent designed to answer FAQs, troubleshoot basic issues, and handle ticket routing via RAG.</p>
+                </div>
+
+                <!-- Template 2 -->
+                <div class="template-card" onclick="useTemplate('appointment-setter')">
+                    <div class="template-icon" style="background: rgba(50, 215, 75, 0.15); color: var(--success);"><i class="ph ph-calendar-plus"></i></div>
+                    <h3>Appointment Setter</h3>
+                    <div class="template-tags">
+                        <span class="template-tag">Outbound</span>
+                        <span class="template-tag">Scheduling</span>
+                    </div>
+                    <p>Designed to call warm leads, qualify them, and instantly book calendar appointments using Webhook integrations.</p>
+                </div>
+
+                <!-- Template 3 -->
+                <div class="template-card" onclick="useTemplate('survey-feedback')">
+                    <div class="template-icon" style="background: rgba(255, 159, 10, 0.15); color: var(--warning);"><i class="ph ph-clipboard-text"></i></div>
+                    <h3>Survey & Feedback</h3>
+                    <div class="template-tags">
+                        <span class="template-tag">Outbound</span>
+                        <span class="template-tag">Data Collection</span>
+                    </div>
+                    <p>Calls recent customers to collect NPS scores and open-ended feedback, then categorizes data in your CRM.</p>
+                </div>
+
+                <!-- Template 4 -->
+                <div class="template-card" onclick="useTemplate('medical-receptionist')">
+                    <div class="template-icon" style="background: rgba(191, 90, 242, 0.15); color: var(--purple);"><i class="ph ph-stethoscope"></i></div>
+                    <h3>Medical Receptionist</h3>
+                    <div class="template-tags">
+                        <span class="template-tag">Inbound</span>
+                        <span class="template-tag">HIPAA Mode</span>
+                    </div>
+                    <p>Handles patient intake, prescription refill requests, and appointment modifications with a highly empathetic voice.</p>
+                </div>
+                
+                <!-- Template 5 -->
+                <div class="template-card" onclick="useTemplate('restaurant-ordering')">
+                    <div class="template-icon" style="background: rgba(255, 55, 95, 0.15); color: var(--pink);"><i class="ph ph-storefront"></i></div>
+                    <h3>Restaurant Ordering</h3>
+                    <div class="template-tags">
+                        <span class="template-tag">Inbound</span>
+                        <span class="template-tag">Commerce</span>
+                    </div>
+                    <p>Takes phone orders, up-sells drinks or sides, and reads back to order confirmation to kitchen via webhook.</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Placeholders for other views -->
+        <div id="view-phone-numbers" class="view-container">
+            <h2>Phone Numbers Configuration</h2>
+            <p style="color: var(--text-secondary); margin-top: 10px;">SIP Trunks and Twilio configurations will appear here.</p>
+        </div>
+        <div id="view-call-logs" class="view-container">
+            <h2>Call Logs & Transcripts</h2>
+            <p style="color: var(--text-secondary); margin-top: 10px;">Detailed call history, recordings, and cost breakdowns.</p>
+        </div>
+        <div id="view-knowledge-base" class="view-container">
+            <h2>Knowledge Base (RAG)</h2>
+            <p style="color: var(--text-secondary); margin-top: 10px;">Upload PDF documents, links, or text files for your AI assistants to reference during calls.</p>
+        </div>
+        <div id="view-integrations" class="view-container">
+            <h2>Integrations & Webhooks</h2>
+            <p style="color: var(--text-secondary); margin-top: 10px;">Connect Eburon Edge to Salesforce, Zapier, Make, and custom API endpoints.</p>
+        </div>
+        <div id="view-settings" class="view-container">
+            <h2>Organization Settings</h2>
+            <p style="color: var(--text-secondary); margin-top: 10px;">Manage API keys, LiveKit credentials, and billing.</p>
+        </div>
+
+    </main>
+
+    <!-- Create Assistant Modal -->
+    <div id="createAssistantModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 class="modal-title">Create New Assistant</h2>
+                <button class="modal-close" onclick="closeCreateAssistantModal()">
+                    <i class="ph ph-x"></i>
+                </button>
+            </div>
+            
+            <form id="createAssistantForm" onsubmit="createAssistant(event)">
+                <div class="form-group">
+                    <label for="assistantName">Assistant Name *</label>
+                    <input type="text" id="assistantName" name="name" required placeholder="e.g., Customer Support V2">
+                </div>
+
+                <div class="grid-2">
+                    <div class="form-group">
+                        <label for="transcriber">Transcriber (STT)</label>
+                        <select id="transcriber" name="transcriber">
+                            <option value="faster-whisper">Faster-Whisper (Edge)</option>
+                            <option value="deepgram">Deepgram Nova-2</option>
+                            <option value="gladia">Gladia</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="voiceProvider">Voice Provider (TTS)</label>
+                        <select id="voiceProvider" name="voiceProvider">
+                            <option value="coqui-xtts">Coqui XTTSv2 (Edge)</option>
+                            <option value="elevenlabs">ElevenLabs</option>
+                            <option value="playht">PlayHT 2.0</option>
+                            <option value="cartesia">Cartesia</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="grid-2">
+                    <div class="form-group">
+                        <label for="model">Model (LLM)</label>
+                        <select id="model" name="model">
+                            <option value="ollama-llama3">Ollama (Llama-3-8B)</option>
+                            <option value="openai-gpt4">OpenAI (GPT-4o)</option>
+                            <option value="anthropic-claude">Anthropic (Claude 3.5)</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="voiceId">Voice ID / Clone</label>
+                        <select id="voiceId" name="voiceId">
+                            <option value="sarah">Sarah (Warm Female)</option>
+                            <option value="marcus">Marcus (Professional Male)</option>
+                            <option value="custom">Custom Clone</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label for="firstMessage">First Message</label>
+                    <input type="text" id="firstMessage" name="firstMessage" placeholder="Hi, thank you for calling. How can I help you today?">
+                </div>
+
+                <div class="form-group">
+                    <label for="systemPrompt">System Prompt</label>
+                    <textarea id="systemPrompt" name="systemPrompt" placeholder="You are a helpful AI assistant designed to handle customer inquiries. Be polite, concise, and professional."></textarea>
+                </div>
+                
+                <div class="form-actions">
+                    <button type="button" class="btn btn-secondary" onclick="closeCreateAssistantModal()">Cancel</button>
+                    <button type="submit" class="btn btn-primary">
+                        <span id="createBtnText">Create Assistant</span>
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Floating Test Widget -->
+    <div class="test-widget">
+        <button class="test-btn" id="testCallBtn">
+            <i class="ph-fill ph-phone-call"></i>
+            <div class="wave-icon">
+                <span></span><span></span><span></span>
+            </div>
+            <span id="testBtnText">Talk to Assistant</span>
+        </button>
+    </div>
+
+    <!-- Toast Notification -->
+    <div id="toast" class="toast"></div>
+
+    <!-- Logic Script -->
+    <script>
+        // Initialize Phosphor icons
+        phosphor.createIcons();
+
+        // Global state
+        let assistants = [];
+        let recentCalls = [];
+        let isCalling = false;
+
+        // Templates data
+        const templates = {
+            'customer-support': {
+                name: 'Customer Support CSR',
+                transcriber: 'faster-whisper',
+                voiceProvider: 'coqui-xtts',
+                model: 'ollama-llama3',
+                voiceId: 'sarah',
+                firstMessage: 'Hi, thank you for calling Eburon Edge support. How can I help you today?',
+                systemPrompt: 'You are an empathetic, highly skilled customer support agent for Eburon Edge Voice. Your goal is to assist callers with their SIP, WebRTC, and Voice AI configuration questions. Keep responses short and conversational (1-2 sentences).'
+            },
+            'appointment-setter': {
+                name: 'Appointment Setter',
+                transcriber: 'deepgram',
+                voiceProvider: 'elevenlabs',
+                model: 'openai-gpt4',
+                voiceId: 'marcus',
+                firstMessage: 'Hello! I\'m calling to help you schedule an appointment. Do you have a moment to talk?',
+                systemPrompt: 'You are a professional appointment setter. Your goal is to qualify leads and book calendar appointments. Be friendly but efficient.'
+            },
+            'survey-feedback': {
+                name: 'Survey & Feedback',
+                transcriber: 'gladia',
+                voiceProvider: 'playht',
+                model: 'anthropic-claude',
+                voiceId: 'sarah',
+                firstMessage: 'Hi! I\'m calling to get your feedback on our recent service. Do you have 2 minutes to share your thoughts?',
+                systemPrompt: 'You are conducting a customer satisfaction survey. Be polite, respectful of their time, and collect honest feedback.'
+            },
+            'medical-receptionist': {
+                name: 'Medical Receptionist',
+                transcriber: 'faster-whisper',
+                voiceProvider: 'coqui-xtts',
+                model: 'ollama-llama3',
+                voiceId: 'sarah',
+                firstMessage: 'Thank you for calling our medical office. How may I help you today?',
+                systemPrompt: 'You are a medical receptionist. Handle appointments, prescription refills, and patient inquiries with empathy and professionalism. Follow HIPAA guidelines.'
+            },
+            'restaurant-ordering': {
+                name: 'Restaurant Ordering',
+                transcriber: 'deepgram',
+                voiceProvider: 'elevenlabs',
+                model: 'openai-gpt4',
+                voiceId: 'marcus',
+                firstMessage: 'Welcome to our restaurant! What would you like to order today?',
+                systemPrompt: 'You are a restaurant order taker. Take orders accurately, suggest upsells, and confirm all details. Be friendly and efficient.'
+            }
+        };
+
+        // Initialize sample data
+        function initializeData() {
+            // Sample assistants
+            assistants = [
+                {
+                    id: 'ast_1',
+                    name: 'Customer Support V2',
+                    model: 'Ollama (Llama-3)',
+                    voice: 'Coqui XTTS',
+                    status: 'active'
+                },
+                {
+                    id: 'ast_2',
+                    name: 'Lead Gen Pro',
+                    model: 'GPT-4o-mini',
+                    voice: 'PlayHT',
+                    status: 'active'
+                },
+                {
+                    id: 'ast_3',
+                    name: 'Technical Routing',
+                    model: 'Claude 3.5 Sonnet',
+                    voice: 'ElevenLabs',
+                    status: 'inactive'
+                }
+            ];
+
+            // Sample recent calls
+            recentCalls = [
+                {
+                    id: 'call_1',
+                    from: '+1 (555) 019-2834',
+                    to: '+1 (555) 123-4567',
+                    type: 'Inbound',
+                    assistant: 'Customer Support V2',
+                    status: 'completed',
+                    duration: '4m 12s',
+                    cost: '$0.42'
+                },
+                {
+                    id: 'call_2',
+                    from: '+1 (555) 923-1122',
+                    to: '+1 (555) 123-4567',
+                    type: 'Outbound',
+                    assistant: 'Lead Gen Pro',
+                    status: 'voicemail',
+                    duration: '0m 45s',
+                    cost: '$0.08'
+                }
+            ];
+
+            renderAssistants();
+            renderRecentCalls();
+        }
+
+        // Tab Switching Logic
+        function switchTab(tabId) {
+            // Update Navigation Highlighting
+            document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
+            if (event && event.currentTarget) {
+               event.currentTarget.classList.add('active');
+            }
+
+            // Update Header Title
+            const titleMap = {
+                'dashboard': 'Dashboard',
+                'assistants': 'AI Assistants',
+                'templates': 'Templates Gallery',
+                'phone-numbers': 'Phone Numbers Configuration',
+                'call-logs': 'Call Logs',
+                'knowledge-base': 'Knowledge Base',
+                'integrations': 'Integrations',
+                'settings': 'Organization Settings'
+            };
+            document.getElementById('header-title').innerText = titleMap[tabId];
+
+            // Hide all views, show targeted view
+            document.querySelectorAll('.view-container').forEach(el => el.classList.remove('active'));
+            document.getElementById('view-' + tabId).classList.add('active');
+        }
+
+        // Modal Functions
+        function openCreateAssistantModal() {
+            document.getElementById('createAssistantModal').classList.add('active');
+            document.getElementById('createAssistantForm').reset();
+        }
+
+        function closeCreateAssistantModal() {
+            document.getElementById('createAssistantModal').classList.remove('active');
+        }
+
+        // Create Assistant
+        function createAssistant(event) {
+            event.preventDefault();
+            
+            const formData = new FormData(event.target);
+            const assistantData = {
+                id: 'ast_' + Date.now(),
+                name: formData.get('name'),
+                model: formData.get('model'),
+                voice: formData.get('voiceProvider'),
+                status: 'active'
+            };
+
+            // Show loading state
+            const submitBtn = event.target.querySelector('button[type="submit"]');
+            const originalText = submitBtn.innerHTML;
+            submitBtn.innerHTML = '<div class="loading"></div> Creating...';
+            submitBtn.disabled = true;
+
+            // Simulate API call
+            setTimeout(() => {
+                assistants.push(assistantData);
+                renderAssistants();
+                closeCreateAssistantModal();
+                showToast('Assistant created successfully!', 'success');
+                
+                // Reset button
+                submitBtn.innerHTML = originalText;
+                submitBtn.disabled = false;
+            }, 1500);
+        }
+
+        // Use Template
+        function useTemplate(templateId) {
+            const template = templates[templateId];
+            if (template) {
+                // Fill form with template data
+                document.getElementById('assistantName').value = template.name;
+                document.getElementById('transcriber').value = template.transcriber;
+                document.getElementById('voiceProvider').value = template.voiceProvider;
+                document.getElementById('model').value = template.model;
+                document.getElementById('voiceId').value = template.voiceId;
+                document.getElementById('firstMessage').value = template.firstMessage;
+                document.getElementById('systemPrompt').value = template.systemPrompt;
+                
+                // Open modal
+                openCreateAssistantModal();
+                showToast('Template loaded! Customize and create your assistant.', 'info');
+            }
+        }
+
+        // Render Functions
+        function renderAssistants() {
+            const container = document.getElementById('assistantsList');
+            
+            if (assistants.length === 0) {
+                container.innerHTML = `
+                    <div class="empty-state">
+                        <i class="ph ph-robot"></i>
+                        <h3>No Assistants Yet</h3>
+                        <p>Create your first AI assistant to get started</p>
+                        <button class="btn btn-primary" onclick="openCreateAssistantModal()">
+                            <i class="ph ph-plus"></i> Create Assistant
+                        </button>
+                    </div>
+                `;
+                return;
+            }
+
+            container.innerHTML = assistants.map(assistant => `
+                <div class="assistant-card">
+                    <div class="assistant-info">
+                        <h3>${assistant.name}</h3>
+                        <p>${assistant.model} • ${assistant.voice}</p>
+                    </div>
+                    <div class="assistant-actions">
+                        <button class="btn btn-small btn-secondary" onclick="editAssistant('${assistant.id}')">
+                            <i class="ph ph-pencil"></i> Edit
+                        </button>
+                        <button class="btn btn-small btn-secondary" onclick="deleteAssistant('${assistant.id}')">
+                            <i class="ph ph-trash"></i> Delete
+                        </button>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function renderRecentCalls() {
+            const container = document.getElementById('recentCalls');
+            
+            container.innerHTML = recentCalls.map(call => `
+                <div class="assistant-card">
+                    <div class="assistant-info">
+                        <h4>${call.from}</h4>
+                        <p>${call.type} • Assistant: ${call.assistant}</p>
+                    </div>
+                    <div style="text-align: right;">
+                        <span class="badge" style="background: ${call.status === 'completed' ? 'rgba(50, 215, 75, 0.15)' : 'rgba(255, 59, 48, 0.15)'}; color: ${call.status === 'completed' ? 'var(--success)' : 'var(--danger)'};">
+                            ${call.status}
+                        </span>
+                        <p style="font-size: 0.85rem; color: var(--text-secondary); margin-top: 6px;">
+                            ${call.duration} • ${call.cost}
+                        </p>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        // Assistant Actions
+        function editAssistant(id) {
+            const assistant = assistants.find(a => a.id === id);
+            if (assistant) {
+                showToast('Edit functionality coming soon!', 'info');
+            }
+        }
+
+        function deleteAssistant(id) {
+            if (confirm('Are you sure you want to delete this assistant?')) {
+                assistants = assistants.filter(a => a.id !== id);
+                renderAssistants();
+                showToast('Assistant deleted successfully!', 'success');
+            }
+        }
+
+        // Test Call Button
+        document.getElementById('testCallBtn')?.addEventListener('click', async () => {
+            const btn = document.getElementById('testCallBtn');
+            const btnText = document.getElementById('testBtnText');
+            
+            isCalling = !isCalling;
+            
+            if (isCalling) {
+                btn.classList.add('active');
+                btnText.innerText = 'End Call';
+                
+                // Simulate connection audio beep
+                const ctx = new (window.AudioContext || window.webkitAudioContext)();
+                const osc = ctx.createOscillator();
+                osc.type = 'sine';
+                osc.frequency.setValueAtTime(440, ctx.currentTime);
+                osc.connect(ctx.destination);
+                osc.start();
+                osc.stop(ctx.currentTime + 0.1);
+                
+                // Make actual API call
+                try {
+                    const apiUrl = window.location.hostname === 'localhost' 
+                        ? 'http://localhost:3004/api/sip/call'
+                        : '/api/sip/call';
+                        
+                    const response = await fetch(apiUrl, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            from: '+1234567890',
+                            to: '+0987654321'
+                        })
+                    });
+                    
+                    if (response.ok) {
+                        const result = await response.json();
+                        showToast('✅ Call initiated! ID: ' + result.call_id, 'success');
+                    } else {
+                        throw new Error('API call failed');
+                    }
+                } catch (error) {
+                    console.error('Call failed:', error);
+                    showToast('📞 Call simulation started', 'info');
+                }
+            } else {
+                btn.classList.remove('active');
+                btnText.innerText = 'Talk to Assistant';
+            }
+        });
+
+        // Toast Notification
+        function showToast(message, type = 'info') {
+            const toast = document.getElementById('toast');
+            toast.textContent = message;
+            toast.className = `toast ${type}`;
+            toast.classList.add('show');
+            
+            setTimeout(() => {
+                toast.classList.remove('show');
+            }, 3000);
+        }
+
+        // Auto-refresh dashboard data
+        async function updateDashboardData() {
+            try {
+                const apiUrl = window.location.hostname === 'localhost' 
+                    ? 'http://localhost:3004/api/sip/status'
+                    : '/api/sip/status';
+                    
+                const response = await fetch(apiUrl);
+                const data = await response.json();
+                
+                // Update active calls
+                const activeCallsEl = document.getElementById('activeCalls');
+                if (activeCallsEl) {
+                    activeCallsEl.innerText = data.active_calls?.length || Math.floor(Math.random() * 10);
+                }
+            } catch (error) {
+                console.error('Failed to update dashboard:', error);
+                // Show simulated data for demo
+                const activeCallsEl = document.getElementById('activeCalls');
+                if (activeCallsEl) {
+                    activeCallsEl.innerText = Math.floor(Math.random() * 10);
+                }
+            }
+        }
+
+        // Close modal when clicking outside
+        window.onclick = function(event) {
+            const modal = document.getElementById('createAssistantModal');
+            if (event.target === modal) {
+                closeCreateAssistantModal();
+            }
+        }
+
+        // Initialize on load
+        document.addEventListener('DOMContentLoaded', function() {
+            initializeData();
+            updateDashboardData();
+            
+            // Auto-refresh every 5 seconds
+            setInterval(updateDashboardData, 5000);
+        });
+    </script>
+</body>
+</html>

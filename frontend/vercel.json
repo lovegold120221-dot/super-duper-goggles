@@ -1,0 +1,54 @@
+{
+  "version": 2,
+  "builds": [
+    {
+      "src": "index.html",
+      "use": "@vercel/static"
+    }
+  ],
+  "rewrites": [
+    {
+      "source": "/api/sip/status",
+      "destination": "http://localhost:5060/api/status"
+    },
+    {
+      "source": "/api/sip/call",
+      "destination": "http://localhost:5060/api/call"
+    },
+    {
+      "source": "/api/tts/tts",
+      "destination": "http://localhost:8002/api/tts"
+    },
+    {
+      "source": "/api/tts/health",
+      "destination": "http://localhost:8002/health"
+    },
+    {
+      "source": "/api/ollama/tags",
+      "destination": "http://localhost:11434/api/tags"
+    },
+    {
+      "source": "/api/ollama/generate",
+      "destination": "http://localhost:11434/api/generate"
+    }
+  ],
+  "headers": [
+    {
+      "source": "/api/(.*)",
+      "headers": [
+        {
+          "key": "Access-Control-Allow-Origin",
+          "value": "*"
+        },
+        {
+          "key": "Access-Control-Allow-Methods",
+          "value": "GET, POST, PUT, DELETE, OPTIONS"
+        },
+        {
+          "key": "Access-Control-Allow-Headers",
+          "value": "Content-Type, Authorization"
+        }
+      ]
+    }
+  ]
+}

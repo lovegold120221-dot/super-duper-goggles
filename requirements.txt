@@ -1,0 +1,20 @@
+# LiveKit Agents and Plugins
+livekit-agents>=0.9.0
+livekit-plugins>=0.10.0
+livekit>=0.15.0
+
+# HTTP Client for TTS API calls
+aiohttp>=3.8.0
+
+# Audio Processing
+numpy>=1.21.0
+
+# STT and TTS dependencies
+faster-whisper>=0.10.0
+silero-vad>=3.5.0
+
+# OpenAI-compatible LLM client
+openai>=1.0.0
+
+# Additional utilities
+websockets>=11.0.0
